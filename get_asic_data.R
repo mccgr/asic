@@ -3,7 +3,8 @@ library(lubridate)
 library(dplyr)
 library(RPostgreSQL, quietly = TRUE)
 
-df <- read_tsv('/home/bdcallen/Downloads/company_201908/COMPANY_201908.csv', col_types = 'cccccccccccccc')
+df <- read_tsv('/home/bdcallen/Downloads/company_201908/COMPANY_201908.csv', 
+               col_types = 'cccccccccccccc', locale = locale(encoding = 'ISO-8859-1'))
 
 colnames(df) <- c('company_name_orig', 'acn', 'type', 'class', 'subclass', 'status', 'registration_date',
                 'previous_state_of_registration', 'previous_state_number', 'modified_since_last_report',
