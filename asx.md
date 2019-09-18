@@ -1,13 +1,13 @@
-# asic_information
+# asx
 
-This README gives a detailed description of the table `asxlisting.asic_information`.This table gives the current information that exists on the ASIC database on each unique entity that has been listed on the ASX, that is each entity that has ever been assigned an `issuer_id`. 
+This README gives a detailed description of the table `asic.asx`. This table gives the current information that exists on the ASIC database on each unique entity that has been listed on the ASX, that is each entity that has ever been assigned an `issuer_id` in the `asxlisting` tables. 
  
 
 ## The table and fields
  
- - `linked_id`: the minimum issuer_id which identifies the firm. Same as the `issuer_id` in `filings`.
+ - `linked_id`: the minimum `issuer_id` which identifies the firm. Same as the `issuer_id` in `asxlisting.filings`.
  
- - `company_name`: the current name of the entity. This was found by taking the `company_name` associated with the maximum `issuer_id` ever assigned to each firm.
+ - `company_name`: the current name of the entity, as given by the ASX. This was found by taking the `company_name` associated with the maximum `issuer_id` (from `asxlisting.issuer_ids`) ever assigned to each firm.
  
  - `company_name_asic`: the literal name recorded as a string of the entity given on the ASIC database. This is not always equal or even equivalent to `company_name` recorded from the ASX, as there are often issues with making a match, as will be explained below. If there are no matches for a firm on the ASIC database, this field is null.
  
@@ -52,11 +52,11 @@ This README gives a detailed description of the table `asxlisting.asic_informati
   
   2. Some companies with a given `linked_id` for which the `company_name` on the ASX is of the form `COMPANY NAME LIMITED` often only have meaningful matches to an entry with a `company_name_asic` of the form `COMPANY NAME LTD.`, and vice versa. For this reason, the function which determines whether two names match, `company_name_comparer(company_name_1, company_name_2)`, was designed to first strip the full stops from the appropriate strings (ie. 'LTD.' is considered equivalent to 'LTD', 'N.L.' is equivalent to 'NL', and so on), and to consider 'LIMITED' equivalent to 'LTD', 'PROPRIETARY LIMITED' to 'PTY LTD', 'NO LIABILITY' to 'NL', and so on. 
   
-  3. There are many entities with a given `linked_id` and `company_name` that are in reality a group of several subentities, each with their own `abn`, `acn`, `arbn` and/or `arsn`. A large majority of these entities have `company_name`s ending in `GROUP` (eg. `WESTFIELD GROUP`, `linked_id = 5425`) These entities cannot be matched to records in ASIC by `company_name` alone. For these cases, the company numbers for the individual entities involved in the group were first searched from filings in `asxlisting.filings` which have headlines of the form `Appendix [0-9]+[A-Z]+` (eg. `Appendix 3B`, a very common filing associated with the issue of securities), as these filings normally have one of two boxes on the initial filing page containing the ABNs, ACNs, ARBNs and ARSNs. Then a record in `asxlisting.asic_information` with the same given `linked_id` and `company_name` was made for each subentity searched on ASIC by the corresponding company number found. As a finished example, for `WESTFIELD GROUP`, a filing which contains company numbers for the subentities is the one with `ids_id` equal to [1455114](https://www.asx.com.au/asxpdf/20131021/pdf/42k51mnhw6wlwn.pdf), which is an Appendix 3E. A simple look at the `Name of Entity` box on the first page of the official ASX part of the form (or the footer on the first page made by Westfield Group) gives company numbers for the corresponding entries in `asxlisting.asic_information` below
+  3. There are many entities with a given `linked_id` and `company_name` that are in reality a group of several subentities, each with their own `abn`, `acn`, `arbn` and/or `arsn`. A large majority of these entities have `company_name`s ending in `GROUP` (eg. `WESTFIELD GROUP`, `linked_id = 5425`) These entities cannot be matched to records in ASIC by `company_name` alone. For these cases, the company numbers for the individual entities involved in the group were first searched from filings in `asxlisting.filings` which have headlines of the form `Appendix [0-9]+[A-Z]+` (eg. `Appendix 3B`, a very common filing associated with the issue of securities), as these filings normally have one of two boxes on the initial filing page containing the ABNs, ACNs, ARBNs and ARSNs. Then a record in `asic.asx` with the same given `linked_id` and `company_name` was made for each subentity searched on ASIC by the corresponding company number found. As a finished example, for `WESTFIELD GROUP`, a filing which contains company numbers for the subentities is the one with `ids_id` equal to [1455114](https://www.asx.com.au/asxpdf/20131021/pdf/42k51mnhw6wlwn.pdf), which is an Appendix 3E. A simple look at the `Name of Entity` box on the first page of the official ASX part of the form (or the footer on the first page made by Westfield Group) gives company numbers for the corresponding entries in `asic.asx` below
   
 ```
 crsp=> SELECT linked_id, company_name, company_name_asic, former_names, abn,
-crsp-> acn, arbn, arsn FROM asxlisting.asic_information
+crsp-> acn, arbn, arsn FROM asic.asx
 crsp-> WHERE linked_id = 5425;
  linked_id |  company_name   |          company_name_asic           |                        former_names                         |      abn       |     acn     | arbn |    arsn     
 -----------+-----------------+--------------------------------------+-------------------------------------------------------------+----------------+-------------+------+-------------
@@ -72,7 +72,7 @@ crsp-> WHERE linked_id = 5425;
  
   
 ```
-crsp=> SELECT linked_id, company_name, company_name_asic, abn, acn, arbn, arsn FROM asxlisting.asic_information
+crsp=> SELECT linked_id, company_name, company_name_asic, abn, acn, arbn, arsn FROM asic.asx
 WHERE linked_id = 16678;
  linked_id |                        company_name                        |              company_name_asic               |      abn       |     acn     | arbn |    arsn     
 -----------+------------------------------------------------------------+----------------------------------------------+----------------+-------------+------+-------------
@@ -86,7 +86,7 @@ WHERE linked_id = 16678;
 
   5. There are some cases which actually correspond to entities listed on a different stock exchange, usually the National Stock Exchange of Australia, for which `company_name` is of the form `NSX - COMPANY NAME`,  or the SIM Venture Securities Exchange (now the IR Plus Securities Exchange), for which the `company_name` is of the form `SIM - COMPANY NAME`. For these cases, the `company_name` was matched to a `company_name_asic` by doing the search with the `(NSX|SIM) - ` stem removed. 
   
-  6. Some ASX listed entities with a given `company_name` have more than one match on an ASIC search. This was a problem, as the function used to find a match was designed only to return the first match, as most cases had at most one obvious match, and searching each search entry is time consuming. For these cases, the automated web browser was watched as the search was being made, and then backtracked manually to see if there were any other entries with a matching name, but different ACN. If there was another such entry, the search result was clicked on, and another row was made for this result in `asxlisting.asic_information`. Eventually, it would be desirable to use the filings (such as Appendix 3B), to validate the correct match for each `linked_id`, and to correspondingly delete the incorrect matches. 
+  6. Some ASX listed entities with a given `company_name` have more than one match on an ASIC search. This was a problem, as the function used to find a match was designed only to return the first match, as most cases had at most one obvious match, and searching each search entry is time consuming. For these cases, the automated web browser was watched as the search was being made, and then backtracked manually to see if there were any other entries with a matching name, but different ACN. If there was another such entry, the search result was clicked on, and another row was made for this result in `asic.asx`. Eventually, it would be desirable to use the filings (such as Appendix 3B), to validate the correct match for each `linked_id`, and to correspondingly delete the incorrect matches. 
   
   7. The ASX sometimes replaces common words with certain acronyms when the `company_name` is very long, such as `FND` for `FUND`, `MGMT` for `MANAGEMENT`. As the number of these cases was small, they were usually done manually, by clicking a search result, or using the filings. Also, the choice was made to not have `company_name_comparer` handle all these cases, as there is the possibility a company could legitimately just contain these shortened strings as part of its name, and it was not desirable to introduce erroneous matches due to this. 
   
@@ -235,7 +235,7 @@ then it iterates over the columns, setting a column to a `datetime` format if th
 
 ### `write_asic_details(driver, engine, linked_id, company_name)`
 
-This function `extract_asic_details` to get the appropriate dataframe for the `linked_id` and `company_name`, and writes it to the database, in the table `asxlisting.asic_information`, returning `True` if successful. Otherwise, `False` is returned if there is some failure. Also, in the former case, this function iterates over the dataframe columns, and makes a new column if a particular column does not currently exist in the table.
+This function `extract_asic_details` to get the appropriate dataframe for the `linked_id` and `company_name`, and writes it to the database, in the table `asic.asx`, returning `True` if successful. Otherwise, `False` is returned if there is some failure. Also, in the former case, this function iterates over the dataframe columns, and makes a new column if a particular column does not currently exist in the table.
 
 
 ## The data scraping process
@@ -250,7 +250,7 @@ sql_alt = """
           SELECT a.issuer_id, max_ids.linked_id, a.company_name FROM asxlisting.issuer_ids AS a
           INNER JOIN max_ids
           USING (issuer_id)
-          LEFT JOIN asxlisting.asic_information AS b
+          LEFT JOIN asic.asx AS b
           USING(linked_id)
           WHERE b.linked_id IS NULL
           ORDER BY linked_id
@@ -259,7 +259,7 @@ sql_alt = """
 max_id_company_names_df = pd.read_sql(sql, engine)
 ```
 
-Here, the current names are found by finding the maximum, and thus current, `issuer_id`s for each `linked_id`, represented by the temporary table `max_ids`, then inner joining `max_ids` with `asxlisting.issuer_ids`. Finally, a left join is done with `asxlisting.asic_information` and selecting the cases where the `b.linked_id` value associated with `asxlisting.asic_information` is `NULL`, thus obtaining the the `linked_id`s which have not been processed into `asxlisting.asic_information`. If the table is empty, we get the entire set of distinct `linked_id`s in the associated column of `max_id_company_names_df`.
+Here, the current names are found by finding the maximum, and thus current, `issuer_id`s for each `linked_id`, represented by the temporary table `max_ids`, then inner joining `max_ids` with `asxlisting.issuer_ids`. Finally, a left join is done with `asic.asx` and selecting the cases where the `b.linked_id` value associated with `asic.asx` is `NULL`, thus obtaining the the `linked_id`s which have not been processed into `asic.asx`. If the table is empty, we get the entire set of distinct `linked_id`s in the associated column of `max_id_company_names_df`.
 
 Next, we open a Selenium Chrome browser object (which we usually store in a variable called `driver`), like we did in the previous section, and then use `go_to_search_page` to go to the ASIC Connect page. As one can guess, scraping the data from this point involves repeated calling `write_asic_details` for each `(linked_id, company_name)` pair contained in `max_id_company_names_df`. When we first use the function, the search is entered (here we use the example `COMMONWEALTH BANK OF AUSTRALIA`), as can be seen here
 
@@ -277,7 +277,7 @@ It is this problem which made making a fully automated process for capturing thi
 
 Given the many issues that appeared with the name matching, the full set of `linked_id`s was passed through on a couple of rounds. In the first round, the entire set (around 6740 ids, at the time) was ensentially passed through, with the browser being watched minimally to look out for multiple distinct matches (problem 2) and the odd cases of unhelpful characters and acronyms (problems 7 and 8). The around 80-85% of cases which had an appropriate match were picked up relatively quickly by `write_asic_details`, in that they had unique match accessed by the browser. 
 
-After the first pass through the full set, a second pass was done for the entries which either had `company_name_asic` equal to `NULL`, or all of the `abn`, `acn`, `arbn` and `arsn` fields set to `NULL`. This amounted to around 1000 cases after the first pass. This second pass actually took longer to do, as this constituted the difficult cases, and the browser was watched much more closely. It was in this step that the filings, such as Appendix 3B, were checked for company numbers, particularly for groups (problem 5) and managed investment schemes with a given investment manager and responsible entity (problem 6). If a result had to be accessed manually, either by clicking on a later result in the search results which the browser had not accessed, or doing a search by company number, the result was manually written to `asxlisting.asic_information` was done using the following commands in three separate Jupyter Notebook cells: firstly, `get_company_info_table`
+After the first pass through the full set, a second pass was done for the entries which either had `company_name_asic` equal to `NULL`, or all of the `abn`, `acn`, `arbn` and `arsn` fields set to `NULL`. This amounted to around 1000 cases after the first pass. This second pass actually took longer to do, as this constituted the difficult cases, and the browser was watched much more closely. It was in this step that the filings, such as Appendix 3B, were checked for company numbers, particularly for groups (problem 5) and managed investment schemes with a given investment manager and responsible entity (problem 6). If a result had to be accessed manually, either by clicking on a later result in the search results which the browser had not accessed, or doing a search by company number, the result was manually written to `asic.asx` was done using the following commands in three separate Jupyter Notebook cells: firstly, `get_company_info_table`
 ```python
 raw_df = get_company_info_table(driver)
 raw_df
@@ -317,7 +317,7 @@ types = {'linked_id': st.Integer(),
          'arbn': st.Text()
          }
 
-df.to_sql('asic_information', engine, schema="asxlisting", if_exists="append", 
+df.to_sql('asx', engine, schema="asic", if_exists="append", 
             index=False, dtype = types)
 ```
  
