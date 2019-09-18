@@ -118,19 +118,19 @@ The last line in the above code simply opens a browser with no initial page. The
  This function directs the browser to the ASIC connect search page. It takes as an argument the Selenium `driver` object, and returns `True` if it has successfully directed it to the search page. It works by first making `driver` do a get request to `asic.gov.au`, seen in the screenshot directly below
 
 
-![Screenshot](asic_information_img1.png)
+![Screenshot](asx_md_imgs/asx_md_img01.png)
 
 
 and then it gets the tag associated with the `Companies and organisations` hyperlink in the subsection in this image 
 
 
-![Screenshot](asic_information_img0.png)
+![Screenshot](asx_md_imgs/asx_md_img02.png)
 
 
 leading to the ASIC Connect search page in the next screenshot
 
 
-![Screenshot](asic_information_img2.png)
+![Screenshot](asx_md_imgs/asx_md_img03.png)
 
 
 ### `enter_company_search(driver, company_name)`
@@ -138,13 +138,13 @@ leading to the ASIC Connect search page in the next screenshot
  After the browser has been opened and directed to the ASIC Connect page, this function takes in the browser (`driver`) and a `company_name`, and performs a search by the `company_name`. It does this by searching for the tags associated with the dropdown and input text boxes, as well as the `Go` button associated with the section of any ASIC Connect page (opening page, search page or result page) shown in the image below, then it enters `Organisation and Business Names` for the dropdown box, `company_name` for the input text box, and then clicks the `Go` button.
 
 
-![Screenshot](asic_information_img8.png)
+![Screenshot](asx_md_imgs/asx_md_img04.png)
 
 
 If this is successful, the browser will go to a search results page for the `company_name`, like the one shown below
 
 
-![Screenshot](asic_information_img5.png)
+![Screenshot](asx_md_imgs/asx_md_img05.png)
 
 
 ### `company_name_comparer(company_name_1, company_name_2)`
@@ -199,7 +199,7 @@ Here, we see that it handles a few of the name matching issues mentioned above, 
 If we click on one of the search results in type of page which `enter_company_search` leads the browser to (typically in some function that has found a match using `company_name_comparer`), the browser will go to a results page that looks like the one below
 
 
-![Screenshot](asic_information_img6.png)
+![Screenshot](asx_md_imgs/asx_md_img06.png)
 
 
 Assuming we are on a page like this, `get_company_info_table` takes the browser object as an argument, then scrapes the data in the `Company Summary` section, which is the interesting section that typically contains the ABNs, ACNS and so on, and then returns the data as a dataframe. 
@@ -211,7 +211,7 @@ Assuming we are on a page like this, `get_company_info_table` takes the browser 
 If the browser is lead to a typical search page, with a table like the one in the screenshot below, this function firstly gets the tags associated with the hyperlinks for the search results, and then initially uses `company_name_comparer` to compare the associated names to `company_name` in order to find a match. If this fails, it traverses iteratively over the search results, uses `get_company_info_table` to scrape on the data on a result momentarily, and then uses `company_name_comparer` to compare the names in the `former_names` field to `company_name`, and if there is a match, it breaks the loop and returns this dataframe from the result that has just been visited. If there is still no match, it returns `None`.
 
 
-![Screenshot](asic_information_img9.png)
+![Screenshot](asx_md_imgs/asx_md_img07.png)
 
  
 ### `get_most_relevant_match_df(driver, company_name)`
@@ -264,13 +264,13 @@ Here, the current names are found by finding the maximum, and thus current, `iss
 Next, we open a Selenium Chrome browser object (which we usually store in a variable called `driver`), like we did in the previous section, and then use `go_to_search_page` to go to the ASIC Connect page. As one can guess, scraping the data from this point involves repeated calling `write_asic_details` for each `(linked_id, company_name)` pair contained in `max_id_company_names_df`. When we first use the function, the search is entered (here we use the example `COMMONWEALTH BANK OF AUSTRALIA`), as can be seen here
 
 
-![Screenshot](asic_information_img3.png)
+![Screenshot](asx_md_imgs/asx_md_img08.png)
 
 
 but when the function clicks the `Go` button, a version 3 reCaptcha is instantiated, as can be seen in the next screenshot
 
 
-![Screenshot](asic_information_img4.png)
+![Screenshot](asx_md_imgs/asx_md_img09.png)
 
 
 It is this problem which made making a fully automated process for capturing this data difficult. Hence, the decision was made to do complete reCaptcha manually, and then use `write_asic_details` as many times as possible until the reCaptcha was re-instantiated. For this reason, `enter_company_search`, which `write_asic_details` is using under the hood to do the searches, was designed to do a Selenium Wait command after clicking the `Go` button, which made the browser wait until a certain tag on the resulting search page appeared, which could only happen on the first occasion if the reCaptcha was done before the wait timed out. The timeout for the wait command was set at 10 minutes, to give plenty of time to complete the reCaptcha. Normally, it was possible to use `write_asic_details` about 20 times consecutively each time reCaptcha was done, before the reCaptcha reappeared. 
