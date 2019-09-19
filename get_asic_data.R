@@ -3,6 +3,14 @@ library(lubridate)
 library(dplyr)
 library(RPostgreSQL, quietly = TRUE)
 
+clean_prob_former_names <- function(x) {
+  
+  result <- gsub('\\\"', '\\\\\"', x) # handle double quotes in strings
+  result <- ifelse(grepl('[,{}]', result), paste0('\"', result, '\"'), result)
+  return(result)
+}
+
+
 df <- read_tsv('/home/bdcallen/Downloads/company_201908/COMPANY_201908.csv', 
                col_types = 'cccccccccccccc', locale = locale(encoding = 'ISO-8859-1'))
 
@@ -24,9 +32,9 @@ not_current_name_df <- df %>% filter(!current_name_indicator)
 df <- df %>% filter(current_name_indicator)
 
 
-former_names <- not_current_name_df %>% 
+former_names <- not_current_name_df %>%
                 group_by(acn) %>% 
-                summarise(former_names = strsplit(paste(company_name_orig, collapse="\t"), '\t'))
+  summarise(former_names = paste0('{', paste(clean_prob_former_names(company_name_orig), collapse=","), '}'))
 
 reg_and_has_former_names_df <- df %>% inner_join(former_names, by = 'acn')
 
@@ -73,13 +81,26 @@ full_df <- full_df %>% rename(company_name = company_name_orig)
 
 # Last step, write to the database
 
+
+order <- c('company_name', 'acn', 'abn', 'former_names', 'modified_since_last_report', 'type', 'class', 'subclass', 
+           'status', 'registration_date', 'current_name_start_date', 'previous_state_of_registration', 
+           'previous_state_number')
+
+full_df <- full_df[, order]
+
+
+
+
 pg <- dbConnect(PostgreSQL())
 
+field_types <- c('TEXT', 'TEXT', 'TEXT', 'TEXT[]', 'BOOLEAN', 'TEXT', 
+                 'TEXT', 'TEXT', 'TEXT', 'DATE', 'DATE', 'TEXT', 'TEXT')
+
+names(field_types) <- colnames(full_df) 
+
 dbWriteTable(pg, c("asic", "asic_bulk_extract"),
-             full_df, row.names = FALSE)
+             full_df, row.names = FALSE, field.types = field_types)
 
 dbDisconnect(pg)
-
-
 
 
