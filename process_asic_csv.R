@@ -116,13 +116,39 @@ field_types <- c('TEXT', 'TEXT', 'TEXT', 'TEXT[]', 'BOOLEAN', 'TEXT',
 
 names(field_types) <- colnames(full_df) 
 
-dbWriteTable(pg, c("asic", "asic_bulk_extract"),
-             full_df, overwrite = TRUE, row.names = FALSE, field.types = field_types)
+
+if(table_exists) {
+  
+  success <- dbWriteTable(pg, c("asic", "asic_bulk_extract_temp"),
+               full_df, row.names = FALSE, field.types = field_types)
+  
+  if(success) {
+    
+    dbExecute(pg, 'DROP TABLE asic.asic_bulk_extract')
+    dbExecute(pg, 'ALTER TABLE asic.asic_bulk_extract_temp RENAME TO asic_bulk_extract')
+    unlink(paste0(ASIC_DIR, '/', 'bulk_extract_csvs'), recursive = TRUE)
+    
+  }
+  
+  
+} else {
+  
+  success <- dbWriteTable(pg, c("asic", "asic_bulk_extract"),
+               full_df, row.names = FALSE, field.types = field_types)
+  
+  if(success) {
+    
+    unlink(paste0(ASIC_DIR, '/', 'bulk_extract_csvs'), recursive = TRUE)
+    
+  }
+  
+}
+
 
 dbDisconnect(pg)
 
-# Finally delete the csv file to save memory
 
-unlink(paste0(ASIC_DIR, '/', 'bulk_extract_csvs'), recursive = TRUE)
+
+
 
 
