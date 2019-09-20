@@ -98,14 +98,31 @@ full_df <- full_df[, order]
 
 pg <- dbConnect(PostgreSQL())
 
+table_exists <- dbExistsTable(pg, c("asic", "asic_bulk_extract"))
+
+if(table_exists) {
+  
+  current_tbl_df <- dbReadTable(pg, c("asic", "asic_bulk_extract"))
+  since_deleted_df <- current_tbl_df %>% anti_join(full_df, by = 'acn')
+  
+  full_df <- full_df %>% bind_rows(since_deleted_df)
+  
+}
+
+
+
 field_types <- c('TEXT', 'TEXT', 'TEXT', 'TEXT[]', 'BOOLEAN', 'TEXT', 
                  'TEXT', 'TEXT', 'TEXT', 'DATE', 'DATE', 'TEXT', 'TEXT')
 
 names(field_types) <- colnames(full_df) 
 
 dbWriteTable(pg, c("asic", "asic_bulk_extract"),
-             full_df, row.names = FALSE, field.types = field_types)
+             full_df, overwrite = TRUE, row.names = FALSE, field.types = field_types)
 
 dbDisconnect(pg)
+
+# Finally delete the csv file to save memory
+
+unlink(paste0(ASIC_DIR, '/', 'bulk_extract_csvs'), recursive = TRUE)
 
 
