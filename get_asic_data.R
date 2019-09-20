@@ -3,6 +3,7 @@ library(lubridate)
 library(dplyr)
 library(RPostgreSQL, quietly = TRUE)
 
+
 clean_prob_former_names <- function(x) {
   
   result <- gsub('\\\"', '\\\\\"', x) # handle double quotes in strings
@@ -10,9 +11,13 @@ clean_prob_former_names <- function(x) {
   return(result)
 }
 
+ASIC_DIR <- Sys.getenv('ASIC_DIR')
 
-df <- read_tsv('/home/bdcallen/Downloads/company_201908/COMPANY_201908.csv', 
-               col_types = 'cccccccccccccc', locale = locale(encoding = 'ISO-8859-1'))
+csv_file_name <- list.files(paste0(ASIC_DIR, '/', 'bulk_extract_csvs'))[[1]]
+
+csv_path <- paste0(ASIC_DIR, '/', 'bulk_extract_csvs', '/', csv_file_name)
+
+df <- read_tsv(csv_path, col_types = 'cccccccccccccc', locale = locale(encoding = 'ISO-8859-1'))
 
 colnames(df) <- c('company_name_orig', 'acn', 'type', 'class', 'subclass', 'status', 'registration_date',
                 'previous_state_of_registration', 'previous_state_number', 'modified_since_last_report',
