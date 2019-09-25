@@ -44,7 +44,7 @@ Also, the rows in the original csv file have a many to one relationship to the o
     * `EXPT`: Exempt Proprietary Company
     * `HUNT`: Proprietary home unit company. A company that operates for the sole purpose of administering the day-to-day running of a residential property (refer to paragraph (c) of the definitions of 'special purpose company' in the Corporations (Fees) Regulations for full details)
     * `LISN`: Company licensed under Section 383 of the Corporations Act 2001 to omit 'Limited' from its name
-    * `LISS`: Company licensed under Section 383 to omit 'Limited' from its name - superannuation trustee company^[Superannuation Trustee Companies - Operates for the sole purpose of acting as a trustee of a regulated superannuation fund. This class of company may only be used on Annual Returns for 1994 or later.]
+    * `LISS`: Company licensed under Section 383 to omit 'Limited' from its name - superannuation trustee company[^1]
     * `LIST`: Listed public company
     * `NEXT`: Non-Exempt Proprietary Company
     * `NLTD`: Non-profit public company registered without ‘Limited’ in its name under Section 150
@@ -84,7 +84,7 @@ Also, the rows in the original csv file have a many to one relationship to the o
 
 
 
-
+[^1]: Superannuation Trustee Companies - Operates for the sole purpose of acting as a trustee of a regulated superannuation fund. This class of company may only be used on Annual Returns for 1994 or later.
 
 
 
