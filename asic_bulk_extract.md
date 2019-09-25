@@ -21,9 +21,13 @@ Also, the rows in the original csv file have a many to one relationship to the o
  
  - `modified_since_last_report`: whether the record corresponding to the `acn` has been modified since the previous update. 
  
- - `type`: the type of company the entity is. Same as `Type` in the original csv. Thus, from the guide, the possible values for this field are:
+ - `type`: the type of company the entity is, given as a four-character string. Same as `Type` in the original csv. Thus, from the guide, the possible values for this field are:
  
-    * ``APTY``: Australian proprietary company
+    * `APTY`: Australian proprietary company
+    * `APUB`: Australian public company
+    * `ASSN`: Association
+    * `FNOS`: Foreign company (a company incorporated outside Australia but registered as a foreign company in Australia)
+    * `NONC`: Non-organisation (a body not registered under _Corporations Act 2001_ but mentioned in the database)
  
  - `class`                           text   
  
