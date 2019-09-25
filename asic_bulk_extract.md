@@ -83,5 +83,5 @@ Also, the rows in the original csv file have a many to one relationship to the o
 
 
 
-
+### Footnotes
 <a name="myfootnote1">1</a>: Superannuation Trustee Companies - Operates for the sole purpose of acting as a trustee of a regulated superannuation fund. This class of company may only be used on Annual Returns for 1994 or later.
