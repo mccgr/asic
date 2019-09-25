@@ -38,6 +38,7 @@ Also, the rows in the original csv file have a many to one relationship to the o
     * `LMSG`: Limited by Both Shares and Guarantees. The member has the liability as a shareholder (to the extent of the amount unpaid on his shares) and as a guarantor (to the amount nominated in the Memorandum) in the event of a winding up.
     * `NLIA`: No Liability Company. Mining companies only. No legal obligations on the shareholder to pay calls on their shares, e.g. Sterling Silver NL.
     * `UNLM`: Unlimited Company. Is formed on the principle that there is no limit on the liability of the members. Simply, an incorporated partnership, e.g. Mercantile Services Pty, Solicitors.
+    * `NONE`: Does not have an equivalent Australian liability
  
  - `subclass`: this field signifies the subclass of the entity, given as a four-character string. Same as the `Sub Class` column of the original csv. Thus, from the guide, the possible values of this field are:
  
