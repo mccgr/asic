@@ -1,2 +1,2 @@
 # asic
-This repository contains code and documentation related to tables extracted from data from ASIC. 
+This repository contains code and documentation related to tables extracted from data from ASIC. There are two main tables, `asic_bulk_extract` and `asx`. For details of `asic_bulk_extract`, please refer to the readme file [asic_bulk_extract.md](https://github.com/mccgr/asic/blob/master/asic_bulk_extract.md). For a detailed discusssion of the `asx` table, see [asx.md](https://github.com/mccgr/asic/blob/master/asx.md).
