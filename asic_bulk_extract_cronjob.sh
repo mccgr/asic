@@ -1,3 +1,3 @@
 #!/bin/bash
-python3 $ASIC_DIR/get_asic_csv.py
-Rscript $ASIC_DIR/process_asic_csv.R
+python3 get_asic_csv.py
+Rscript process_asic_csv.R
